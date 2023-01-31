@@ -1,31 +1,371 @@
 ---
-title: "Template Quarto Document"
-author: "Author Name"
+title: "Week 3"
 title-block-banner: true
 title-block-style: default
+execute:
+  freeze: true
+  cache: true
 format: html
 # format: pdf
 ---
 
+Agenda:
 
-This is a template quarto document.
+1. `read.csv` for reading datasets
+1. `dplyr`
+1. `ggplot2`
+1. `ggPlotThemes`
 
-This is an `R` cell
 
-```{R}
-#| fig-subcap: "This is the figure subcaption"
-#| fig-align: "center"
-#| fig-cap-location: top
+---
 
-renv::activate()
-library(dplyr)
-x <- rnorm(100)
-x %>% 
-list(data=., mean=mean(.), sd=sd(.))
+Consider this `csv` file:
+
+```
+Name, Age, Height
+Alice, 21, 5.5
+Bob, 25, 6.2
+Charlie, 35, 5.9
 ```
 
-And this is a $\TeX$ block
+You can hard-code this into `R` as follows:
 
-$$
-\bar{X} = \frac{1}{n} \sum_{i=1}^{n} X_i
-$$
+```{r}
+library(knitr)
+library(dplyr)
+
+data_hard_code <- data.frame(
+    Name = c("Alice", "Bob", "Charlie"),
+    Age = c(21, 25, 35),
+    Name = c(5.5, 6.2, 5.9)
+)
+data_hard_code %>% knitr::kable()
+```
+
+
+Let's say we want to read the CSV file from memory, you can do this as follows:
+
+
+```{r}
+file_location <- "./data/data.csv"
+data_from_csv <- read.csv(file_location)
+
+data_from_csv %>% knitr::kable()
+```
+
+There are slightly more advanced and efficient methods:
+
+* `read_csv` from Tidyverse
+* `data.table` package in R
+
+
+Once you have a dataset, you can then begin your analyses:
+
+
+---
+## Exploratory Data Analysis
+
+This is where `dplyr` and `ggplot2` are super-useful, because they facilitate **Exploratory Data Analysis**
+
+
+Since you are already familiar with these packages, I will go through them in ⚡️ speed. 
+
+
+You'll hear this phrase thrown around very often:
+
+> "We need to clean the dataset"
+>
+> --- An anxious data scientist
+
+
+
+The first thing I want to ask is: _what makes a dataset clean?_
+
+Brainstorming:
+
+1. Get rid of `NULL` and `NA` and `NaN` and `missing` entries
+
+1. Making sure that all the values for a particular variable are of the same `data type`, e.g., `double`, or `character` or `logical`
+
+1. Every variable should have its own column
+    - A variable is something which holds "measurements"
+
+1. Every observation should have its own row
+
+1. Every cell, should have a unique value
+
+
+This is what packages like `dplyr`, `tidyr` and their predecessor `plyr` set out to achieve. 
+
+
+This is where functions like:
+
+* `pivot_wider()`
+* `pivot_longer()` from `tidyr` are useful.
+
+
+
+
+#### `dplyr`
+
+The objective of `dplyr` is to provide a set of _"verbs"_ for manipulating data. 
+
+
+Let's take the following working example:
+
+1. Cars (mpg) dataset
+
+```{r}
+library(ggplot2)
+head(mpg, 5) %>% knitr::kable()
+```
+
+2. Iris (flower petal) dataset
+
+```{r}
+head(iris, 5) %>% knitr::kable()
+```
+
+
+Some examples are the following:
+
+1. Select: selects a subset of the columns
+
+```{r}
+mpg %>% 
+select(c(model, displ, class))
+```
+
+
+2. We have `mutate` which creates new columns from existing ones
+
+```{r}
+iris %>% 
+  mutate(Sepal.Area = Sepal.Length * Sepal.Width) %>% 
+  head(., 10) %>% 
+  knitr::kable()
+```
+
+
+3. `filter`
+
+```{r}
+mpg %>% 
+filter(class == "compact")
+```
+
+Some other verbs are:
+
+* `dplyr::summary()`, `dplyr::mutate()`
+* `tidyr::pivot_longer()`, `tidyr::pivot_wider()`
+* `left_join`, `right_join`, `inner_join`, `outer_join`
+
+
+
+## `ggplot2`
+
+`gg` in `ggplot2`  stands for: **G**rammar of **G**raphics. There is NO `ggplot1`
+
+Since you guys are super familiar, let's look at a super quick example:
+
+
+We start off by decalring a `ggplot` object
+
+```{r}
+library(ggplot2)
+plt <- ggplot(iris)
+```
+
+Now can add points to it
+
+```{r}
+plt + geom_point(
+    aes(x=Petal.Length, y=Sepal.Length)
+)
+```
+
+If we want to color the points by `Species`
+
+```{r}
+plt + geom_point(
+    aes(x=Petal.Length, y=Sepal.Length, colour=Species)
+)
+```
+
+If we want to add trendlines to these points:
+
+```{r}
+plt + 
+geom_point(
+    aes(x=Petal.Length, y=Sepal.Length, colour=Species)
+) +  
+geom_smooth(
+    aes(x=Petal.Length, y=Sepal.Length)
+)
+```
+
+
+If we want a linear trendline then you can choose the method:
+
+If we want to add trendlines to these points:
+
+```{r}
+plt + 
+geom_point(
+    aes(x=Petal.Length, y=Sepal.Length, colour=Species)
+) +  
+geom_smooth(
+    aes(x=Petal.Length, y=Sepal.Length),
+    method = lm
+)
+```
+# Thu, Jan 26
+
+
+
+## `ggthemeassist`
+
+Done in Rstudio
+
+## More on **data types**
+
+1. String, e.g. `r x <- "this is a character"; x`
+2. Integer, e.g. `[1,2,3]`
+3. Double, e.g. `[2.2, 3.14159, 0.9]`
+4. Booleans, e.g. `TRUE/ FALSE`
+
+
+* What are factors?
+Factors are categorical variables. 
+
+
+Let's look at an example: 
+
+`var` contains the country code for people in north america:
+
+```{r}
+var <- c(
+    "USA",
+    "USA",
+    "CAN",
+    "CAN",
+    "CAN",
+    "CAN",
+    "MEX",
+    "MEX"
+)
+var
+```
+
+
+To tell `R` that this is explicitly categorical and not just a vector of strings, you have to specify the following:
+
+```{r}
+as.factor(var)
+```
+
+Let's look at another example
+
+```{r}
+head(iris, 3) %>% 
+knitr::kable()
+
+iris$Species
+```
+
+
+Similarly, if we look at `mpg`
+
+```{r}
+head(mpg, 3) %>% 
+knitr::kable()
+```
+
+Let's have a look at `class`
+
+```{r}
+as.factor(mpg$class)
+```
+
+
+Similarly, we can have a look at the manufacturer:
+
+```{r}
+as.factor(mpg$manufacturer)
+```
+
+
+This is where the `forcats` package is really useful:
+
+
+```{r}
+library(forcats)
+manufacturer <- as.factor(mpg$manufacturer)
+fct_reorder(manufacturer, mpg$hwy, min)
+```
+
+
+We will be coming back to this in ~3 weeks when we dfo logistic regression. 
+
+
+## `purrr`
+
+This package provides a set of functional programming tools. It's best illustrated through an example:
+
+Consider the following procedure: We want to
+
+1. Filter `iris` by species
+2. COmpute the `Sepal.Area` as `Sepal.Length` $\times$ `Sepal.Width`
+3. Find the average of `Sepal.Area`  for every flower in the species
+
+
+```r
+iris %>% 
+mutate(Area = Sepal.Length * Sepal.Width) %>% 
+group_by()
+summarize()
+```
+
+
+Consider the following task:
+
+1. Take a number `i` from $1 \dots 10$
+2. Create a matrix with entries of dimension 1 ... `i^2` $\times$ `i`
+3. Compute the average of the elements of the matrix
+4. Print it
+
+
+
+One way of doing this is as follows:
+
+```{r}
+results <- c()
+for (i in 1:10){
+    M <- matrix(
+        c(1:i*i), nrow=i
+    )
+    results[i] <- mean(M)
+}
+results
+```
+
+
+A functional way to think about this is as follows:
+
+$$i \rightarrow M_{i \times i} \rightarrow mean(M)$$
+
+
+
+```{r}
+library(purrr)
+map(
+    1:10,
+    function(i){
+        mean(
+            matrix(
+                c(1:i*i), nrow=i
+            )
+        )
+    }
+)
+```
